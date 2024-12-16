@@ -34,17 +34,6 @@ class PokerEnvironment:
         self.losses = [0, 0]
         self.profits = [0,0]
 
-        # self.is_complete = False
-        # self.has_played_current_hand = [False, False]
-        # self.hand_state = 0
-        # self.total_hands += 1
-        # # Deal Preflop Cards
-        # for i in range(4):
-        #     self.game_state.deal_hole()
-        # self.pot_size = self.game_state.total_pot_amount
-        # self.player_0_hand_strength = self._calculate_hand_strength(self.game_state.hole_cards[0], self.game_state.board_cards, self.n_samples)
-        # self.player_1_hand_strength = self._calculate_hand_strength(self.game_state.hole_cards[1], self.game_state.board_cards, self.n_samples)
-
 
     def reset(self):
         stacks = self.game_state.stacks
@@ -74,17 +63,6 @@ class PokerEnvironment:
             player_count=2,
             mode = Mode.CASH_GAME
         )
-
-            # self.is_complete = False
-            # self.has_played_current_hand = [False, False]
-            # self.hand_state = 0
-            # self.total_hands += 1
-            # # Deal Preflop Cards
-            # for i in range(4):
-            #     self.game_state.deal_hole()
-            # self.pot_size = self.game_state.total_pot_amount
-            # self.player_0_hand_strength = self._calculate_hand_strength(self.game_state.hole_cards[0], self.game_state.board_cards, self.n_samples)
-            # self.player_1_hand_strength = self._calculate_hand_strength(self.game_state.hole_cards[1], self.game_state.board_cards, self.n_samples)
 
         
     def get_state(self, player_index):
@@ -135,9 +113,7 @@ class PokerEnvironment:
 
     def _calculate_hand_strength(self, hand, board, n_samples):
         hand = frozenset([frozenset(hand)])
-        #print(hand)
         board = frozenset([x[0] for x in board])
-        #print(board)
         strength = calculate_hand_strength(
             player_count= 2,
             hole_range = hand,
@@ -150,17 +126,13 @@ class PokerEnvironment:
             #executor=executor
         )
         return strength
-
-
-    def _calculate_hand_potential(self, hand, board, n_samples):
-        return 0.5
     
 
-    def _calculate_opponent_hand_potential(self, your_hand, board, outer_sim_samples, inner_sim_samples):
-        potentials = list()
-        for i in range(outer_sim_samples):
-            potentials.append(self._calculate_hand_potential(your_hand, board, inner_sim_samples))
-        return np.mean(potentials)
+    # def _calculate_opponent_hand_potential(self, your_hand, board, outer_sim_samples, inner_sim_samples):
+    #     potentials = list()
+    #     for i in range(outer_sim_samples):
+    #         potentials.append(self._calculate_hand_potential(your_hand, board, inner_sim_samples))
+    #     return np.mean(potentials)
 
     def deal_hands(self):
         """
@@ -171,21 +143,12 @@ class PokerEnvironment:
         self.hand_state = 0
         self.total_hands += 1
         # Deal Preflop Cards
-        #print(self.game_state.streets)
         for i in range(4):
             self.game_state.deal_hole()
         self.pot_size = self.game_state.total_pot_amount
         self.player_0_hand_strength = self._calculate_hand_strength(self.game_state.hole_cards[0], self.game_state.board_cards, self.n_samples)
         self.player_1_hand_strength = self._calculate_hand_strength(self.game_state.hole_cards[1], self.game_state.board_cards, self.n_samples)
 
-        # player_0_state = self.get_state(0)
-        # player_1_state = self.get_state(1)
-
-        # player_0_reward = self.reward(player_0_state, 0)
-        # player_1_reward = self.reward(player_1_state, 1)
-
-        # return [{'done': self.is_complete, 'state': player_0_state, 'reward': player_0_reward}, 
-        #         {'done': self.is_complete, 'state': player_1_state, 'reward': player_1_reward}]
 
     def step(self, action, player_index):  
 
@@ -193,7 +156,7 @@ class PokerEnvironment:
         if started_complete:
             print('RAN INTO STEP WHEN THE GAME WAS ALREADY COMPLETE')
             new_state = self.get_state(player_index)
-            reward = self.reward(state, None, player_index)
+            reward = self.reward(new_state, None, player_index)
             return {'done': self.is_complete, 'state': new_state,'reward': reward}
 
         # Ensuring action is valid
