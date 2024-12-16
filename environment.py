@@ -31,6 +31,8 @@ class PokerEnvironment:
         self.calls = [0, 0]
         self.played_hands = [0, 0]
         self.total_hands = 0
+        self.losses = [0, 0]
+        self.profits = [0,0]
 
         # self.is_complete = False
         # self.has_played_current_hand = [False, False]
@@ -47,11 +49,11 @@ class PokerEnvironment:
     def reset(self):
         stacks = self.game_state.stacks
         if stacks[0] == 0:
-            print('PLAYER 0 RAN OUT OF MONEY')
+            self.losses[0] += 1
             stacks[0] = self.config['player_0_stack']
             stacks[1] = self.config['player_1_stack']
         elif stacks[1] == 0:
-            print('PLAYER 1 RAN OUT OF MONEY')
+            self.losses[1] += 1
             stacks[1] = self.config['player_1_stack']
             stacks[0] = self.config['player_0_stack']
         self.game_state = NoLimitTexasHoldem.create_state(
@@ -169,6 +171,7 @@ class PokerEnvironment:
         self.hand_state = 0
         self.total_hands += 1
         # Deal Preflop Cards
+        #print(self.game_state.streets)
         for i in range(4):
             self.game_state.deal_hole()
         self.pot_size = self.game_state.total_pot_amount
@@ -267,19 +270,29 @@ class PokerEnvironment:
             if self.is_complete:
                 did_win = self.game_state.statuses[player_index]
                 if did_win:
+                    self.profits[player_index] += state['pot_size']
+                    self.profits[abs(player_index - 1)] += -1 * state['pot_size']
                     return state['pot_size']
                 else:
+                    self.profits[player_index] += -1 * state['pot_size']
+                    self.profits[abs(player_index - 1)] += state['pot_size']
                     return -1 * state['pot_size']
             # Handle reward if mid hand
             return ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['pot_size']
         if player_index == 1:
             if action is not None and action == 'fold':
-                return -1 * ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['pot_size']
+                self.profits[player_index] += -1 * state['pot_size']
+                self.profits[abs(player_index - 1)] += state['pot_size']
+                return -1 * ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['money_to_call']
             if self.is_complete:
                 did_win = self.game_state.statuses[player_index]
                 if did_win:
+                    self.profits[player_index] += state['pot_size']
+                    self.profits[abs(player_index - 1)] += -1 * state['pot_size']
                     return state['pot_size']
                 else:
+                    self.profits[player_index] += -1 * state['pot_size']
+                    self.profits[abs(player_index - 1)] += state['pot_size']
                     return -1 * state['pot_size']
             # Handle reward if mid hand
             epsilon = 0.001
