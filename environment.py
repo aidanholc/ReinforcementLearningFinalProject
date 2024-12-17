@@ -229,34 +229,34 @@ class PokerEnvironment:
     def reward(self, state, action, player_index):
         # Handle reward if user won/lost
         epsilon = 0.001
-        if player_index == 0:
-            if self.is_complete:
-                did_win = self.game_state.statuses[player_index]
-                if did_win:
-                    self.profits[player_index] += state['pot_size']
-                    self.profits[abs(player_index - 1)] += -1 * state['pot_size']
-                    return state['pot_size']
-                else:
-                    self.profits[player_index] += -1 * state['pot_size']
-                    self.profits[abs(player_index - 1)] += state['pot_size']
-                    return -1 * state['pot_size']
-            # Handle reward if mid hand
-            return ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['pot_size']
-        if player_index == 1:
-            if action is not None and action == 'fold':
+        # if player_index == 0:
+        #     if self.is_complete:
+        #         did_win = self.game_state.statuses[player_index]
+        #         if did_win:
+        #             self.profits[player_index] += state['pot_size']
+        #             self.profits[abs(player_index - 1)] += -1 * state['pot_size']
+        #             return state['pot_size']
+        #         else:
+        #             self.profits[player_index] += -1 * state['pot_size']
+        #             self.profits[abs(player_index - 1)] += state['pot_size']
+        #             return -1 * state['pot_size']
+        #     # Handle reward if mid hand
+        #     return ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['pot_size']
+        # if player_index == 1:
+        if action is not None and action == 'fold':
+            self.profits[player_index] += -1 * state['pot_size']
+            self.profits[abs(player_index - 1)] += state['pot_size']
+            return -1 * ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['money_to_call']
+        if self.is_complete:
+            did_win = self.game_state.statuses[player_index]
+            if did_win:
+                self.profits[player_index] += state['pot_size']
+                self.profits[abs(player_index - 1)] += -1 * state['pot_size']
+                return state['pot_size']
+            else:
                 self.profits[player_index] += -1 * state['pot_size']
                 self.profits[abs(player_index - 1)] += state['pot_size']
-                return -1 * ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['money_to_call']
-            if self.is_complete:
-                did_win = self.game_state.statuses[player_index]
-                if did_win:
-                    self.profits[player_index] += state['pot_size']
-                    self.profits[abs(player_index - 1)] += -1 * state['pot_size']
-                    return state['pot_size']
-                else:
-                    self.profits[player_index] += -1 * state['pot_size']
-                    self.profits[abs(player_index - 1)] += state['pot_size']
-                    return -1 * state['pot_size']
-            # Handle reward if mid hand
-            epsilon = 0.001
-            return ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['pot_size']
+                return -1 * state['pot_size']
+        # Handle reward if mid hand
+        epsilon = 0.001
+        return ((state['hand_strength'] ** (1/(state['lh'] + epsilon))) - (1 - (state['hand_strength'] ** (1/(state['lh'] + epsilon))))) * state['pot_size']
